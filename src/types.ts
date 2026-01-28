@@ -1,4 +1,4 @@
-export interface RenameOptions {
+export interface OptimizerOptions {
   /**
    * An array of entry source files which will used to detect exported and internal fields.
    * Basically it should be entry point(s) of the library/project.
@@ -34,6 +34,11 @@ export interface RenameOptions {
    * A field is treated as "decorated" if itself or any its parent (on type level) has a decorator.
    */
   ignoreDecorated: boolean;
+
+  /**
+   * Whether to inline const enum values.
+   */
+  inlineConstEnums?: boolean;
 }
 
 export const enum VisibilityType {
@@ -42,10 +47,11 @@ export const enum VisibilityType {
   External = 2,
 }
 
-export const defaultOptions: RenameOptions = {
+export const defaultOptions: OptimizerOptions = {
   entrySourceFiles: [],
   privatePrefix: "$p$",
   internalPrefix: "$i$",
   publicJSDocTag: "public",
   ignoreDecorated: false,
+  inlineConstEnums: true,
 };

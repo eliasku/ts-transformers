@@ -1,7 +1,7 @@
 {
   "name": "@eliasku/ts-transformers",
-  "description": "",
-  "version": "0.0.1",
+  "description": "TypeScript transformer for code optimization",
+  "version": "0.0.2",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -22,9 +22,10 @@
     "@rollup/plugin-typescript": "latest",
     "tslib": "latest"
   },
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    "./mangler": "./src/mangler/index.ts",
-    "./const-enum": "./src/const-enum/index.ts"
+    ".": "./src/index.ts"
   },
   "repository": {
     "type": "git",

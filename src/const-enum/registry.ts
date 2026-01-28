@@ -2,7 +2,6 @@ import ts from "typescript";
 import { EnumValue, EvaluationContext } from "./evaluator";
 import { EnumEvaluator } from "./evaluator";
 import { hasModifier, isConstEnumSymbol } from "./utils";
-import { LOGS } from "../config";
 
 export interface ConstEnumInfo {
   declaration: ts.EnumDeclaration;
@@ -56,28 +55,14 @@ export class ConstEnumRegistry {
   }
 
   private collectConstEnumsFromEntryPoints(): void {
-    if (LOGS) {
-      console.log(`[const-enum registry] Starting collection from ${this.entrySourceFiles.length} entry point(s)`);
-    }
-
-    // Collect all const enums from the entire program
     const sourceFiles = this.program.getSourceFiles();
-    if (LOGS) {
-      console.log(`[const-enum registry] Program has ${sourceFiles.length} source files`);
-    }
 
     for (const sourceFile of sourceFiles) {
-      // We are using typescript files from node_modules as well, so don't skip them
-      // but skip declaration files
       if (sourceFile.isDeclarationFile) {
         continue;
       }
 
       this.registerConstEnumFromSource(sourceFile);
-    }
-
-    if (LOGS) {
-      console.log(`[const-enum registry] Found ${this.enumDeclarations.size} const enum declarations`);
     }
   }
 
@@ -96,7 +81,6 @@ export class ConstEnumRegistry {
     const name = this.getEnumSymbolName(symbol);
 
     if (this.enumDeclarations.has(name)) {
-      // Already registered (might be from different import)
       return;
     }
 

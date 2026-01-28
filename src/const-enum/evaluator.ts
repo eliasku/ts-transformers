@@ -58,7 +58,6 @@ export class EnumEvaluator {
 
   private evaluateImplicitMember(member: ts.EnumMember): EnumValue {
     const name = ts.isIdentifier(member.name) ? member.name.text : `<computed>`;
-    // unused
     void name;
 
     if (this.lastImplicitValue === -1) {
@@ -104,12 +103,10 @@ export class EnumEvaluator {
     const left = this.evaluate(expr.left, context);
     const right = this.evaluate(expr.right, context);
 
-    // String concatenation
     if (typeof left === "string" && typeof right === "string" && expr.operatorToken.kind === ts.SyntaxKind.PlusToken) {
       return left + right;
     }
 
-    // Numeric operations
     if (typeof left === "number" && typeof right === "number") {
       switch (expr.operatorToken.kind) {
         case ts.SyntaxKind.BarToken:

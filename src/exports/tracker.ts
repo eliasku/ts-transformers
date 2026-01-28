@@ -8,7 +8,7 @@ import {
   getExportsForSourceFile,
   getDeclarationsForSymbol,
 } from "../utils/symbol-utils";
-import { LOGS } from "../../config";
+import { LOGS } from "../config";
 
 export class ExportsSymbolTree {
   private readonly program: ts.Program;

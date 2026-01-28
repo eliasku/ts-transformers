@@ -1,7 +1,7 @@
 import { expect, describe, it } from "bun:test";
 import { compileTestInput } from "./compile_test_input";
 
-describe("const-enum transformer", () => {
+describe("mangler with const-enum inlining", () => {
   it.concurrent("inline numeric const enum values", async () => {
     const result = await compileTestInput("./data/const-enum/numeric.ts");
     const code = result?.output?.[0]?.code;

@@ -4,7 +4,7 @@
     "types": ["node", "bun-types"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": true,
+    "noEmit": true
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src/**/*.ts"]
 }

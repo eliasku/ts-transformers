@@ -14,23 +14,26 @@ import {
   isNodeNamedDeclaration,
 } from "./utils/symbol-utils";
 import { getNodeJSDocComment } from "./utils/ast-utils";
-import { RenameOptions, defaultOptions, VisibilityType } from "./types";
-import { LOGS } from "../config";
+import { OptimizerOptions, defaultOptions, VisibilityType } from "./types";
+import { ConstEnumRegistry } from "./const-enum/registry";
+import { EnumEvaluator } from "./const-enum/evaluator";
+import { isConstEnumType } from "./const-enum/utils";
+import { LOGS } from "./config";
 
-export function propertiesRenameTransformer(
+export const optimizer = (
   program: ts.Program,
-  config?: Partial<RenameOptions>,
-): ts.TransformerFactory<ts.SourceFile> {
-  return createTransformerFactory(program, config);
-}
+  config?: Partial<OptimizerOptions>,
+): ts.TransformerFactory<ts.SourceFile> => createTransformerFactory(program, config);
 
 function createTransformerFactory(
   program: ts.Program,
-  options?: Partial<RenameOptions>,
+  options?: Partial<OptimizerOptions>,
 ): ts.TransformerFactory<ts.SourceFile> {
-  const fullOptions: RenameOptions = { ...defaultOptions, ...options };
+  const fullOptions: OptimizerOptions = { ...defaultOptions, ...options };
   const typeChecker = program.getTypeChecker();
   const exportsSymbolTree = new ExportsSymbolTree(program, fullOptions.entrySourceFiles);
+  const constEnumRegistry = new ConstEnumRegistry(program, fullOptions.entrySourceFiles);
+  const enumEvaluator = new EnumEvaluator(typeChecker);
 
   const cache = new Map<ts.Symbol, VisibilityType>();
 
@@ -40,17 +43,24 @@ function createTransformerFactory(
   }
 
   return (context: ts.TransformationContext) => {
-    function transformNodeAndChildren(node: ts.SourceFile, ctx: ts.TransformationContext): ts.SourceFile;
-    function transformNodeAndChildren(node: ts.Node, ctx: ts.TransformationContext): ts.Node;
-    function transformNodeAndChildren(node: ts.Node, ctx: ts.TransformationContext): ts.Node {
-      return ts.visitEachChild(
-        transformNode(node),
-        (childNode: ts.Node) => transformNodeAndChildren(childNode, ctx),
-        ctx,
-      );
-    }
-
     function transformNode(node: ts.Node): ts.Node {
+      if (fullOptions.inlineConstEnums !== false) {
+        if (ts.isPropertyAccessExpression(node)) {
+          const inlined = tryInlineConstEnum(node);
+          if (inlined) return inlined;
+        }
+
+        if (ts.isImportSpecifier(node)) {
+          const removed = tryRemoveConstEnumImport(node);
+          if (removed === undefined) return undefined;
+        }
+
+        if (ts.isImportClause(node)) {
+          const removed = tryRemoveConstEnumImportClause(node);
+          if (removed === undefined) return undefined;
+        }
+      }
+
       // const a = { node }
       if (ts.isShorthandPropertyAssignment(node)) {
         return handleShorthandPropertyAssignment(node);
@@ -637,6 +647,73 @@ function createTransformerFactory(
       return isSymbolClassMember(typeChecker.getSymbolAtLocation(node));
     }
 
-    return (sourceFile: ts.SourceFile) => transformNodeAndChildren(sourceFile, context);
+    function tryInlineConstEnum(node: ts.PropertyAccessExpression): ts.Expression | null {
+      const expressionType = typeChecker.getTypeAtLocation(node.expression);
+      if (!isConstEnumType(expressionType)) return null;
+
+      const enumSymbol = expressionType.symbol || expressionType.aliasSymbol;
+      if (!enumSymbol) return null;
+
+      const enumInfo = constEnumRegistry.getEnumInfo(enumSymbol);
+      if (!enumInfo) return null;
+
+      const memberValue = enumInfo.members.get(node.name.text)?.value;
+      if (memberValue === undefined || memberValue === null) return null;
+
+      return enumEvaluator.createLiteral(memberValue);
+    }
+
+    function tryRemoveConstEnumImport(node: ts.ImportSpecifier): ts.ImportSpecifier | undefined {
+      const importedType = typeChecker.getTypeAtLocation(node);
+      if (isConstEnumType(importedType)) {
+        return undefined;
+      }
+      return node;
+    }
+
+    function tryRemoveConstEnumImportClause(node: ts.ImportClause): ts.ImportClause | undefined {
+      if (!node.name) return node;
+      const type = typeChecker.getTypeAtLocation(node.name);
+      if (isConstEnumType(type)) {
+        return undefined;
+      }
+      return node;
+    }
+
+    return (sourceFile: ts.SourceFile) => {
+      function handleEnumDeclaration(node: ts.EnumDeclaration): ts.EnumDeclaration | undefined {
+        if (fullOptions.inlineConstEnums === false) return node;
+        if (!hasModifier(node, ts.SyntaxKind.ConstKeyword)) return node;
+
+        if (sourceFile.isDeclarationFile) {
+          return ts.factory.updateEnumDeclaration(
+            node,
+            node.modifiers?.filter((m) => m.kind !== ts.SyntaxKind.ConstKeyword),
+            node.name,
+            node.members,
+          );
+        }
+        return undefined;
+      }
+
+      function wrapTransformNode(node: ts.Node): ts.Node {
+        if (ts.isEnumDeclaration(node)) {
+          const result = handleEnumDeclaration(node);
+          if (result === undefined) return undefined;
+          if (result !== node) return result;
+        }
+        return transformNode(node);
+      }
+
+      function wrappedTransformNodeAndChildren(node: ts.Node): ts.Node {
+        return ts.visitEachChild(
+          wrapTransformNode(node),
+          (childNode: ts.Node) => wrappedTransformNodeAndChildren(childNode),
+          context,
+        );
+      }
+
+      return wrappedTransformNodeAndChildren(sourceFile) as ts.SourceFile;
+    };
   };
 }
