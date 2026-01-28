@@ -160,7 +160,7 @@ function createTransformerFactory(
         return node;
       }
 
-      return createNewNode(propertyName, VisibilityType.Internal, context.factory.createStringLiteral);
+      return createNewNode(propertyName, VisibilityType.Private, context.factory.createStringLiteral);
     }
 
     // obj.node
@@ -270,14 +270,12 @@ function createTransformerFactory(
       type: VisibilityType,
       createNode: (newName: string) => T,
     ): T {
-      const newPropertyName = getNewName(oldPropertyName, type);
+      const newPropertyName = getNewName(oldPropertyName);
       return createNode(newPropertyName);
     }
 
-    function getNewName(originalName: string, type: VisibilityType): string {
-      return `${
-        type === VisibilityType.Private ? fullOptions.privatePrefix : fullOptions.internalPrefix
-      }${originalName}`;
+    function getNewName(originalName: string): string {
+      return `${fullOptions.privatePrefix}${originalName}`;
     }
 
     function getActualSymbol(symbol: ts.Symbol): ts.Symbol {
@@ -603,7 +601,7 @@ function createTransformerFactory(
         }
       }
 
-      return putToCache(nodeSymbol, VisibilityType.Internal);
+      return putToCache(nodeSymbol, VisibilityType.Private);
     }
 
     function getShorthandObjectBindingElementSymbol(element: ts.BindingElement): ts.Symbol | null {

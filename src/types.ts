@@ -14,13 +14,6 @@ export interface OptimizerOptions {
   privatePrefix: string;
 
   /**
-   * Prefix of generated names for internal fields
-   * @example '_internal_' // default
-   * @example '$i$'
-   */
-  internalPrefix: string;
-
-  /**
    * Comment which will treat a class/interface/type/property/etc and all its children as "public".
    * Set it to empty string to disable using JSDoc comment to detecting "visibility level".
    * @example 'public' // default
@@ -42,15 +35,13 @@ export interface OptimizerOptions {
 }
 
 export const enum VisibilityType {
-  Internal = 0,
-  Private = 1,
-  External = 2,
+  Private = 0,
+  External = 1,
 }
 
 export const defaultOptions: OptimizerOptions = {
   entrySourceFiles: [],
   privatePrefix: "$p$",
-  internalPrefix: "$i$",
   publicJSDocTag: "public",
   ignoreDecorated: false,
   inlineConstEnums: true,
