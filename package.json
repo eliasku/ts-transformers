@@ -1,19 +1,46 @@
 {
   "name": "@eliasku/ts-transformers",
   "description": "",
+  "version": "0.0.1",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "bun test"
+    "test": "bun test",
+    "format": "prettier --write **/*.{ts,json,md,yml}",
+    "check": "tsc -p .",
+    "lint": "eslint ."
   },
   "dependencies": {
     "typescript": "^5"
   },
-  "optionalDependencies": {},
+  "optionalDependencies": {
+    "prettier": "latest",
+    "eslint": "latest",
+    "typescript-eslint": "latest",
+    "@types/bun": "latest",
+    "rollup": "latest",
+    "@rollup/plugin-typescript": "latest",
+    "tslib": "latest"
+  },
   "exports": {
     "./mangler": "./src/mangler/index.ts",
     "./const-enum": "./src/const-enum/index.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eliasku/ts-transformers.git"
+  },
+  "author": "Ilya Kuzmichev",
+  "keywords": [
+    "typescript",
+    "ts",
+    "plugin",
+    "transformer",
+    "minify",
+    "const-enum",
+    "treeshake",
+    "mangle"
+  ],
   "publishConfig": {
     "access": "public"
   },

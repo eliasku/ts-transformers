@@ -30,7 +30,7 @@ export const compileTestInput = async (input: string) => {
   };
   let bundle: RollupBuild | undefined;
   let output: RollupOutput | undefined;
-  let buildFailed = false;
+  // let buildFailed = false;
   try {
     // Create a bundle. If you are using TypeScript or a runtime that
     // supports it, you can write
@@ -46,7 +46,7 @@ export const compileTestInput = async (input: string) => {
       minifyInternalExports: true,
     });
   } catch (error) {
-    buildFailed = true;
+    // buildFailed = true;
     // do some error reporting
     console.error(error);
     throw error;

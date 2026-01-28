@@ -1,4 +1,4 @@
-import { test, expect, describe, it } from "bun:test";
+import { expect, describe, it } from "bun:test";
 import { compileTestInput } from "./compile_test_input";
 
 describe("const-enum transformer", () => {

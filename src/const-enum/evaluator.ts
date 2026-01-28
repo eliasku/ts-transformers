@@ -8,7 +8,7 @@ export interface EvaluationContext {
 }
 
 export class EnumEvaluator {
-  private lastImplicitValue: number = -1;
+  private lastImplicitValue = -1;
   private enumType: "numeric" | "string" | "mixed" = "numeric";
 
   constructor(private readonly typeChecker: ts.TypeChecker) {}
@@ -58,6 +58,8 @@ export class EnumEvaluator {
 
   private evaluateImplicitMember(member: ts.EnumMember): EnumValue {
     const name = ts.isIdentifier(member.name) ? member.name.text : `<computed>`;
+    // unused
+    void name;
 
     if (this.lastImplicitValue === -1) {
       this.lastImplicitValue = 0;

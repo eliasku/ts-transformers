@@ -115,6 +115,9 @@ function transformEnumDeclaration(
   sourceFile: ts.SourceFile,
   ctx: ts.TransformationContext,
 ): ts.EnumDeclaration | undefined {
+  // unused
+  void ctx;
+
   if (!hasModifier(node, ts.SyntaxKind.ConstKeyword)) {
     return node;
   }

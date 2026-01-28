@@ -12,9 +12,8 @@ const namedDeclarationKinds = [
   ts.SyntaxKind.Parameter,
 ];
 
-export function isNodeNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
-  return namedDeclarationKinds.indexOf(node.kind) !== -1;
-}
+export const isNodeNamedDeclaration = (node: ts.Node): node is ts.NamedDeclaration =>
+  namedDeclarationKinds.indexOf(node.kind) !== -1;
 
 export function getActualSymbol(symbol: ts.Symbol, typeChecker: ts.TypeChecker): ts.Symbol {
   if (symbol.flags & ts.SymbolFlags.Alias) {
@@ -102,11 +101,8 @@ export type ClassMember =
   | ts.GetAccessorDeclaration
   | ts.SetAccessorDeclaration;
 
-export function isClassMember(node: ts.Node): node is ClassMember {
-  return (
-    ts.isMethodDeclaration(node) || ts.isPropertyDeclaration(node) || ts.isGetAccessor(node) || ts.isSetAccessor(node)
-  );
-}
+export const isClassMember = (node: ts.Node): node is ClassMember =>
+  ts.isMethodDeclaration(node) || ts.isPropertyDeclaration(node) || ts.isGetAccessor(node) || ts.isSetAccessor(node);
 
 export function getClassOfMemberSymbol(
   nodeSymbol: ts.Symbol,
@@ -126,11 +122,9 @@ export function getClassOfMemberSymbol(
   return null;
 }
 
-export function hasPrivateKeyword(node: ClassMember | ts.ParameterDeclaration): boolean {
-  return hasModifier(node, ts.SyntaxKind.PrivateKeyword);
-}
+export const hasPrivateKeyword = (node: ClassMember | ts.ParameterDeclaration) =>
+  hasModifier(node, ts.SyntaxKind.PrivateKeyword);
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 function getModifiers(node: ts.Node): readonly ts.Modifier[] {
   if (isBreakingTypeScriptApi(ts)) {
     if (!ts.canHaveModifiers(node)) {
@@ -142,14 +136,11 @@ function getModifiers(node: ts.Node): readonly ts.Modifier[] {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  // eslint-disable-next-line deprecation/deprecation, @typescript-eslint/no-unsafe-return
   return node.modifiers || [];
 }
 
-export function hasModifier(node: ts.Node, modifier: ts.SyntaxKind): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  return getModifiers(node).some((mod) => mod.kind === modifier);
-}
+export const hasModifier = (node: ts.Node, modifier: ts.SyntaxKind) =>
+  getModifiers(node).some((mod) => mod.kind === modifier);
 
 function getDecorators(node: ts.Node): readonly unknown[] {
   if (isBreakingTypeScriptApi(ts)) {
@@ -162,24 +153,18 @@ function getDecorators(node: ts.Node): readonly unknown[] {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  // eslint-disable-next-line deprecation/deprecation, @typescript-eslint/no-unsafe-return
   return node.decorators || [];
 }
 
-export function hasDecorators(node: ts.Node): boolean {
-  return getDecorators(node).length !== 0;
-}
+export const hasDecorators = (node: ts.Node) => getDecorators(node).length !== 0;
 
-export function isConstructorParameter(node: ts.Node): node is ts.ParameterDeclaration {
-  return (
-    ts.isParameter(node) &&
-    ts.isConstructorDeclaration(node.parent as ts.Node) &&
-    (hasModifier(node, ts.SyntaxKind.PublicKeyword) ||
-      hasModifier(node, ts.SyntaxKind.ProtectedKeyword) ||
-      hasModifier(node, ts.SyntaxKind.PrivateKeyword) ||
-      hasModifier(node, ts.SyntaxKind.ReadonlyKeyword))
-  );
-}
+export const isConstructorParameter = (node: ts.Node): node is ts.ParameterDeclaration =>
+  ts.isParameter(node) &&
+  ts.isConstructorDeclaration(node.parent as ts.Node) &&
+  (hasModifier(node, ts.SyntaxKind.PublicKeyword) ||
+    hasModifier(node, ts.SyntaxKind.ProtectedKeyword) ||
+    hasModifier(node, ts.SyntaxKind.PrivateKeyword) ||
+    hasModifier(node, ts.SyntaxKind.ReadonlyKeyword));
 
 function getClassMemberDeclarations(symbol: ts.Symbol | undefined): (ClassMember | ts.ParameterDeclaration)[] {
   if (symbol === undefined) {
@@ -196,13 +181,10 @@ function getClassMemberDeclarations(symbol: ts.Symbol | undefined): (ClassMember
   });
 }
 
-export function isSymbolClassMember(symbol: ts.Symbol | undefined): boolean {
-  return getClassMemberDeclarations(symbol).length !== 0;
-}
+export const isSymbolClassMember = (symbol: ts.Symbol | undefined) => getClassMemberDeclarations(symbol).length !== 0;
 
-export function isPrivateClassMember(symbol: ts.Symbol | undefined): boolean {
-  return getClassMemberDeclarations(symbol).some(hasPrivateKeyword);
-}
+export const isPrivateClassMember = (symbol: ts.Symbol | undefined) =>
+  getClassMemberDeclarations(symbol).some(hasPrivateKeyword);
 
 export function getNodeJSDocComment(node: ts.Node): string {
   const start = node.getStart();
@@ -218,6 +200,5 @@ interface BreakingTypeScriptApi {
   getModifiers(node: ts.Node): readonly ts.Modifier[] | undefined;
 }
 
-function isBreakingTypeScriptApi(compiler: object): compiler is BreakingTypeScriptApi {
-  return "canHaveDecorators" in compiler;
-}
+const isBreakingTypeScriptApi = (compiler: object): compiler is BreakingTypeScriptApi =>
+  "canHaveDecorators" in compiler;

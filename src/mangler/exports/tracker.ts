@@ -12,7 +12,7 @@ import { LOGS } from "../../config";
 
 export class ExportsSymbolTree {
   private readonly program: ts.Program;
-  private readonly exportsTree: Map<ts.Symbol, Set<ts.Symbol>> = new Map();
+  private readonly exportsTree = new Map<ts.Symbol, Set<ts.Symbol>>();
 
   public constructor(program: ts.Program, entrySourceFiles: readonly string[]) {
     this.program = program;

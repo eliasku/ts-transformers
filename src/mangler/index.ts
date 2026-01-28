@@ -50,7 +50,6 @@ function createTransformerFactory(
       );
     }
 
-    // eslint-disable-next-line complexity
     function transformNode(node: ts.Node): ts.Node {
       // const a = { node }
       if (ts.isShorthandPropertyAssignment(node)) {
@@ -284,7 +283,6 @@ function createTransformerFactory(
       return getActualSymbol(symbol);
     }
 
-    // eslint-disable-next-line complexity
     function isTypePropertyExternal(type: ts.Type, typePropertyName: string): boolean {
       // if a type is unknown or any - they should be interpret as a public ones
       if (type.flags & ts.TypeFlags.Unknown || type.flags & ts.TypeFlags.Any) {
@@ -366,7 +364,6 @@ function createTransformerFactory(
       );
     }
 
-    // eslint-disable-next-line complexity
     function getNodeVisibilityType(
       node: ts.Expression | ts.Identifier | ts.StringLiteral | ts.BindingElement,
     ): VisibilityType {
@@ -523,7 +520,6 @@ function createTransformerFactory(
       return getSymbolVisibilityType(symbol);
     }
 
-    // eslint-disable-next-line complexity
     function getSymbolVisibilityType(nodeSymbol: ts.Symbol): VisibilityType {
       nodeSymbol = getActualSymbol(nodeSymbol);
 
