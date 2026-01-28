@@ -1,14 +1,15 @@
 {
   "name": "@eliasku/ts-transformers",
   "description": "TypeScript transformer for code optimization",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "bun test",
     "format": "prettier --write **/*.{ts,json,md,yml}",
     "check": "tsc -p .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:example": "cd example && bun run build.ts"
   },
   "dependencies": {
     "typescript": "^5"
@@ -20,7 +21,8 @@
     "@types/bun": "latest",
     "rollup": "latest",
     "@rollup/plugin-typescript": "latest",
-    "tslib": "latest"
+    "tslib": "latest",
+    "esbuild": "latest"
   },
   "module": "./src/index.ts",
   "types": "./src/index.ts",

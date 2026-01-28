@@ -1,4 +1,5 @@
 import ts from "typescript";
+export * from "./types";
 
 import { ExportsSymbolTree } from "./exports/tracker";
 import {
