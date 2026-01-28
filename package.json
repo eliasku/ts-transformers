@@ -1,0 +1,23 @@
+{
+  "name": "@eliasku/ts-transformers",
+  "description": "",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "typescript": "^5"
+  },
+  "optionalDependencies": {},
+  "exports": {
+    "./mangler": "./src/mangler/index.ts",
+    "./const-enum": "./src/const-enum/index.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src"
+  ]
+}
