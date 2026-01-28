@@ -1,7 +1,8 @@
 import ts from "typescript";
 import { EnumValue, EvaluationContext } from "./evaluator";
 import { EnumEvaluator } from "./evaluator";
-import { hasModifier, isConstEnumSymbol } from "./utils";
+import { isConstEnumSymbol } from "./utils";
+import { hasModifier } from "../typescript-helpers";
 
 export interface ConstEnumInfo {
   declaration: ts.EnumDeclaration;
@@ -19,13 +20,11 @@ export interface ConstEnumMemberInfo {
 export class ConstEnumRegistry {
   private readonly program: ts.Program;
   private readonly typeChecker: ts.TypeChecker;
-  private readonly entrySourceFiles: readonly string[];
   private readonly enumDeclarations: Map<string, ConstEnumInfo>;
 
-  constructor(program: ts.Program, entrySourceFiles?: readonly string[]) {
+  constructor(program: ts.Program) {
     this.program = program;
     this.typeChecker = program.getTypeChecker();
-    this.entrySourceFiles = entrySourceFiles || program.getRootFileNames();
     this.enumDeclarations = new Map();
     this.collectConstEnumsFromEntryPoints();
   }
@@ -110,7 +109,7 @@ export class ConstEnumRegistry {
   }
 
   private evaluateEnumMembers(enumInfo: ConstEnumInfo): void {
-    const evaluator = new EnumEvaluator(this.typeChecker);
+    const evaluator = new EnumEvaluator();
     evaluator.reset();
     const context: EvaluationContext = {
       localMembers: new Map(),

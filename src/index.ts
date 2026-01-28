@@ -1,5 +1,5 @@
 import ts from "typescript";
-export * from "./types";
+export type { OptimizerOptions } from "./types";
 
 import { ExportsSymbolTree } from "./exports/tracker";
 import {
@@ -33,8 +33,8 @@ function createTransformerFactory(
   const fullOptions: OptimizerOptions = { ...defaultOptions, ...options };
   const typeChecker = program.getTypeChecker();
   const exportsSymbolTree = new ExportsSymbolTree(program, fullOptions.entrySourceFiles);
-  const constEnumRegistry = new ConstEnumRegistry(program, fullOptions.entrySourceFiles);
-  const enumEvaluator = new EnumEvaluator(typeChecker);
+  const constEnumRegistry = new ConstEnumRegistry(program);
+  const enumEvaluator = new EnumEvaluator();
 
   const cache = new Map<ts.Symbol, VisibilityType>();
 
@@ -44,7 +44,7 @@ function createTransformerFactory(
   }
 
   return (context: ts.TransformationContext) => {
-    function transformNode(node: ts.Node): ts.Node {
+    function transformNode(node: ts.Node): ts.Node | undefined {
       if (fullOptions.inlineConstEnums !== false) {
         if (ts.isPropertyAccessExpression(node)) {
           const inlined = tryInlineConstEnum(node);
@@ -53,12 +53,16 @@ function createTransformerFactory(
 
         if (ts.isImportSpecifier(node)) {
           const removed = tryRemoveConstEnumImport(node);
-          if (removed === undefined) return undefined;
+          if (removed === undefined) {
+            return undefined;
+          }
         }
 
         if (ts.isImportClause(node)) {
           const removed = tryRemoveConstEnumImportClause(node);
-          if (removed === undefined) return undefined;
+          if (removed === undefined) {
+            return undefined;
+          }
         }
       }
 
@@ -71,9 +75,8 @@ function createTransformerFactory(
       if (ts.isBindingElement(node) && node.propertyName === undefined) {
         if (node.parent && ts.isObjectBindingPattern(node.parent)) {
           return handleShorthandObjectBindingElement(node);
-        } else {
-          console.warn("!!!", node);
         }
+        return node;
       }
 
       // is not supported:
@@ -549,7 +552,6 @@ function createTransformerFactory(
       }
 
       if (nodeSymbol.escapedName === "prototype") {
-        // accessing to prototype
         return putToCache(nodeSymbol, VisibilityType.External);
       }
 
@@ -697,22 +699,21 @@ function createTransformerFactory(
         return undefined;
       }
 
-      function wrapTransformNode(node: ts.Node): ts.Node {
+      function wrapTransformNode(node: ts.Node): ts.Node | undefined {
         if (ts.isEnumDeclaration(node)) {
           const result = handleEnumDeclaration(node);
-          if (result === undefined) return undefined;
-          if (result !== node) return result;
+          if (result === undefined) {
+            return undefined;
+          }
+          if (result !== node) {
+            return result;
+          }
         }
         return transformNode(node);
       }
 
-      function wrappedTransformNodeAndChildren(node: ts.Node): ts.Node {
-        return ts.visitEachChild(
-          wrapTransformNode(node),
-          (childNode: ts.Node) => wrappedTransformNodeAndChildren(childNode),
-          context,
-        );
-      }
+      const wrappedTransformNodeAndChildren = (node: ts.Node): ts.Node | undefined =>
+        ts.visitEachChild(wrapTransformNode(node), wrappedTransformNodeAndChildren, context);
 
       return wrappedTransformNodeAndChildren(sourceFile) as ts.SourceFile;
     };

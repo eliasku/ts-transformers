@@ -2,9 +2,14 @@
   "compilerOptions": {
     "lib": ["ESNext"],
     "types": ["node", "bun-types"],
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "moduleDetection": "force",
     "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
+    "strict": true,
   },
   "include": ["./src/**/*.ts", "./tests/**/*.test.ts", "./example/**/*.ts"],
 }

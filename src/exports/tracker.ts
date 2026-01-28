@@ -21,13 +21,12 @@ export class ExportsSymbolTree {
 
   public isSymbolAccessibleFromExports(symbol: ts.Symbol): boolean {
     symbol = this.getActualSymbol(symbol);
-
-    let result = false;
-    this.exportsTree.forEach((set: Set<ts.Symbol>) => {
-      result = result || set.has(symbol);
-    });
-
-    return result;
+    for (const [, set] of this.exportsTree) {
+      if (set.has(symbol)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private computeTreeForExports(entrySourceFiles: readonly string[]): void {

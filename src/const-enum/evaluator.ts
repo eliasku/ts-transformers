@@ -9,13 +9,9 @@ export interface EvaluationContext {
 
 export class EnumEvaluator {
   private lastImplicitValue = -1;
-  private enumType: "numeric" | "string" | "mixed" = "numeric";
-
-  constructor(private readonly typeChecker: ts.TypeChecker) {}
 
   reset(): void {
     this.lastImplicitValue = -1;
-    this.enumType = "numeric";
   }
 
   evaluate(expr: ts.Expression, context: EvaluationContext): EnumValue {

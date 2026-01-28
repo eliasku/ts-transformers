@@ -139,8 +139,8 @@ function getModifiers(node: ts.Node): readonly ts.Modifier[] {
   return node.modifiers || [];
 }
 
-export const hasModifier = (node: ts.Node, modifier: ts.SyntaxKind) =>
-  getModifiers(node).some((mod) => mod.kind === modifier);
+export const hasModifier = (node: ts.Node, modifier: ts.SyntaxKind): boolean =>
+  ts.canHaveModifiers(node) && getModifiers(node)?.some((mod) => mod.kind === modifier);
 
 function getDecorators(node: ts.Node): readonly unknown[] {
   if (isBreakingTypeScriptApi(ts)) {
