@@ -98,41 +98,7 @@ This transformer is **Phase 1** of a two-phase optimization pipeline:
 
 ## Usage
 
-### Basic Rollup Configuration
-
 [Example Code](./example/build.ts)
-
-```typescript
-import { optimizer } from "@eliasku/ts-transformers";
-import typescript from "@rollup/plugin-typescript";
-import { rollup } from "rollup";
-
-const build = async () => {
-  await using bundle = await rollup({
-    input: "./src/index.ts",
-    plugins: [
-      typescript({
-        transformers: (program) => ({
-          before: [
-            optimizer(program, {
-              entrySourceFiles: ["./src/index.ts"],
-              inlineConstEnums: true,
-            }),
-          ],
-        }),
-      }),
-    ],
-  });
-  await bundle.write({
-    file: "./dist/bundle.js",
-    format: "es",
-  });
-};
-
-build();
-```
-
-### Complete Build Pipeline (Transformer + esbuild)
 
 ```typescript
 import { optimizer } from "@eliasku/ts-transformers";
@@ -142,6 +108,7 @@ import { build } from "esbuild";
 
 // Phase 1: Type-aware optimization with Rollup
 const bundle = await rollup({
+  /// ...
   input: "./src/index.ts",
   plugins: [
     typescript({
@@ -158,6 +125,7 @@ const bundle = await rollup({
 });
 
 await bundle.write({
+  /// ...
   file: "./dist/bundle.js",
   format: "es",
 });
@@ -167,9 +135,10 @@ await build({
   entryPoints: ["./dist/bundle.js"],
   outfile: "./dist/bundle.min.js",
   minify: true,
-  mangleProps: /^(\$i\$|\$p\$)/,  // Match your custom prefixes here
+  mangleProps: /^\$[ip]\$/, // <- Match your custom prefixes here
   mangleQuoted: false,
   keepNames: false,
+  /// ...
 });
 ```
 
@@ -248,11 +217,6 @@ class AppComponent {
 ### inlineConstEnums (optional, default: true)
 
 Whether to inline const enum values and remove const enum declarations.
-
-```typescript
-inlineConstEnums: true  // default: inline const enums
-inlineConstEnums: false  // Keep const enum declarations
-```
 
 ## Examples
 
