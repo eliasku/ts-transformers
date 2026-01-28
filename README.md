@@ -22,7 +22,7 @@ Two-phase optimization pipeline:
 Based on type analysis, properties are categorized as:
 
 - **Public (External)**: Exported from entry points → **no prefix** (preserved)
-- **Private**: Everything else → prefixed with `$p$` (mangled by minifier)
+- **Private**: Everything else → prefixed with `$_` (mangled by minifier)
 
 **Example:**
 ```typescript
@@ -31,15 +31,15 @@ class MyClass {
   /** @public - keeps name */
   publicApi() {}
 
-  method() {}        // Private → $p$method
-  private secret = 1; // Private → $p$secret
+  method() {}        // Private → $_method
+  private secret = 1; // Private → $_secret
 }
 
 // After transformer (before minifier)
 class MyClass {
   publicApi() {}
-  $p$method() {}
-  $p$secret = 1;
+  $_method() {}
+  $_secret = 1;
 }
 
 // After esbuild minifier
@@ -94,7 +94,7 @@ await build({
   entryPoints: ["./dist/bundle.js"],
   outfile: "./dist/bundle.min.js",
   minify: true,
-  mangleProps: /^\$p\$/,  // Match your privatePrefix
+  mangleProps: /^\$_/,  // Match your privatePrefix
   mangleQuoted: false,
   keepNames: false,
 });
@@ -110,12 +110,12 @@ Entry points defining your public API surface.
 entrySourceFiles: ["./src/index.ts"]
 ```
 
-### privatePrefix (optional, default: "$p$")
+### privatePrefix (optional, default: "$_")
 
 Prefix for private properties that will be mangled by esbuild.
 
 ```typescript
-privatePrefix: "$p$"  // myFunction → $p$myFunction
+privatePrefix: "$_"  // myFunction → $_myFunction
 ```
 
 ### publicJSDocTag (optional, default: "public")
@@ -129,7 +129,7 @@ class MyClass {
   /** @public */
   apiMethod() {}  // Public, no prefix
 
-  internalHelper() {}  // Private, gets $p$ prefix
+  internalHelper() {}  // Private, gets $_ prefix
 }
 ```
 
@@ -143,7 +143,7 @@ ignoreDecorated: true
 @Component({ selector: "app-root" })
 class AppComponent {
   @Input() data: any;  // Not renamed
-  private internal = 1;  // Renamed to $p$internal
+  private internal = 1;  // Renamed to $_internal
 }
 ```
 
@@ -174,14 +174,14 @@ export const api = new API();
 
 // After transformer
 class API {
-  $p$baseUrl = "https://api.example.com";
+  $_baseUrl = "https://api.example.com";
   async get(path) {
-    const url = `${this.$p$baseUrl}${path}`;
+    const url = `${this.$_baseUrl}${path}`;
     const response = await fetch(url);
-    return this.$p$handleResponse(response);
+    return this.$_handleResponse(response);
   }
 
-  $p$handleResponse(response) {
+  $_handleResponse(response) {
     return response;
   }
 }

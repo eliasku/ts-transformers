@@ -41,7 +41,7 @@ const main = async () => {
     entryPoints: ["./dist/bundle.js"],
     outfile: "./dist/bundle.min.js",
     minify: true,
-    mangleProps: /^\$[ip]\$/, // Match your custom prefixes here
+    mangleProps: /^\$_/, // Match your privatePrefix
     mangleQuoted: false,
     keepNames: false,
   });

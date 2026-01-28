@@ -7,7 +7,7 @@ describe("mangler transformer", () => {
     const result = await compileTestInput("./data/issue1.ts");
     const code = result?.output?.[0]?.code;
     console.info(code);
-    expect(code).toBe("const e = { $p$x: 1};\nconsole.info(e.$p$x);\n");
+    expect(code).toBe("const e = { $_x: 1};\nconsole.info(e.$_x);\n");
   });
 
   it.concurrent("re-export", async () => {

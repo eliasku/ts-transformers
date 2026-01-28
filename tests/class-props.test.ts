@@ -8,9 +8,9 @@ describe("class props", () => {
     // veryPublicAPI is public
     expect(code).not.toContain("$veryPublicAPI");
     expect(code).toContain("veryPublicAPI");
-    expect(code).toContain("$p$apiMethod");
-    expect(code).toContain("$p$internalHelper");
-    expect(code).toContain("$p$secret");
+    expect(code).toContain("$_apiMethod");
+    expect(code).toContain("$_internalHelper");
+    expect(code).toContain("$_secret");
   });
 
   it.concurrent("ignore decorated", async () => {
@@ -24,6 +24,6 @@ describe("class props", () => {
     const result = await compileTestInput("./data/class-props/decorated-props.ts");
     const code = result?.output?.[0]?.code;
     console.info(code);
-    expect(code).toContain("$reasonable_name");
+    expect(code).toContain("$_reasonable_name");
   });
 });

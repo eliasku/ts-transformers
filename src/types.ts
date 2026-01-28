@@ -8,8 +8,8 @@ export interface OptimizerOptions {
 
   /**
    * Prefix of generated names for private fields
-   * @example '_private_' // default
-   * @example '$p$'
+   * @example '_private_'
+   * @example '$_' // default
    */
   privatePrefix: string;
 
@@ -41,7 +41,7 @@ export const enum VisibilityType {
 
 export const defaultOptions: OptimizerOptions = {
   entrySourceFiles: [],
-  privatePrefix: "$p$",
+  privatePrefix: "$_",
   publicJSDocTag: "public",
   ignoreDecorated: false,
   inlineConstEnums: true,
