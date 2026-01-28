@@ -1,3 +1,6 @@
+[![NPM Version](https://img.shields.io/npm/v/%40eliasku%2Fts-transformers)](https://www.npmjs.com/package/@eliasku/ts-transformers)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/eliasku/ts-transformers/ci.yml)
+
 # @eliasku/ts-transformers
 
 TypeScript transformer for aggressive code minification through type-aware property renaming and const enum inlining.
