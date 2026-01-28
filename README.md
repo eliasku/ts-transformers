@@ -189,7 +189,3 @@ class API {
 // After esbuild minifier
 class A{a="https://api.example.com";async get(t){const n=`${this.a}${t}`;return await fetch(n)}b(t){return t}}const s=new A;export{s};
 ```
-
-## License
-
-MIT
