@@ -1,7 +1,7 @@
 {
   "name": "@eliasku/ts-transformers",
   "description": "TypeScript transformer for code optimization",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "license": "MIT",
   "type": "module",
   "scripts": {
