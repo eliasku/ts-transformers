@@ -17,3 +17,6 @@ export interface TempObject {
   ts: number;
   id: number;
 }
+
+export let state = 2;
+export const setState = (s) => (state = s);

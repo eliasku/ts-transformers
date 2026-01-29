@@ -51,24 +51,27 @@ function createTransformerFactory(
           if (inlined) return inlined;
         }
 
-        if (ts.isImportSpecifier(node)) {
-          const removed = tryRemoveConstEnumImport(node);
-          if (removed === undefined || node.isTypeOnly) {
-            return undefined;
+        // don't remove any imports
+        if (fullOptions.keepConstEnumEmptyDeclaration !== true) {
+          if (ts.isImportSpecifier(node)) {
+            const removed = tryRemoveConstEnumImport(node);
+            if (removed === undefined || node.isTypeOnly) {
+              return undefined;
+            }
           }
-        }
 
-        if (ts.isExportSpecifier(node)) {
-          const removed = tryRemoveConstEnumExport(node);
-          if (removed === undefined || node.isTypeOnly) {
-            return undefined;
+          if (ts.isExportSpecifier(node)) {
+            const removed = tryRemoveConstEnumExport(node);
+            if (removed === undefined || node.isTypeOnly) {
+              return undefined;
+            }
           }
-        }
 
-        if (ts.isImportClause(node)) {
-          const removed = tryRemoveConstEnumImportClause(node);
-          if (removed === undefined) {
-            return undefined;
+          if (ts.isImportClause(node)) {
+            const removed = tryRemoveConstEnumImportClause(node);
+            if (removed === undefined) {
+              return undefined;
+            }
           }
         }
       }
@@ -709,16 +712,20 @@ function createTransformerFactory(
             node.members,
           );
         }
+
+        if (fullOptions.keepConstEnumEmptyDeclaration === true) {
+          return ts.factory.updateEnumDeclaration(node, node.modifiers, node.name, []);
+        }
         return undefined;
       }
 
       function wrapTransformNode(node: ts.Node): ts.Node | undefined {
         if (ts.isEnumDeclaration(node)) {
           const result = handleEnumDeclaration(node);
-          if (result === undefined) {
-            return undefined;
-          }
           if (result !== node) {
+            if (result) {
+              return transformNode(result);
+            }
             return result;
           }
         }
