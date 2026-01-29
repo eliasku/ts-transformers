@@ -20,7 +20,7 @@
     "typescript-eslint": "latest",
     "@types/bun": "latest",
     "rollup": "latest",
-    "@rollup/plugin-typescript": "latest",
+    "rollup-plugin-typescript2": "latest",
     "tslib": "latest",
     "esbuild": "latest"
   },

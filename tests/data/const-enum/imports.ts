@@ -1,5 +1,6 @@
 // This file imports from imported-enum.ts
-import { ImportedEnum, state as ll, type TempObject, setState } from "./imported-enum";
+import { ImportedEnum, state as ll, setState } from "./imported-enum";
+import type { TempObject } from "./imported-enum";
 
 const result: TempObject = {
   ts: ImportedEnum.Foo, // Expect: 1

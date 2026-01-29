@@ -70,7 +70,7 @@ const status = 1;
 
 ```typescript
 import { optimizer } from "@eliasku/ts-transformers";
-import typescript from "@rollup/plugin-typescript";
+import typescript from "rollup-plugin-typescript2";
 import { rollup } from "rollup";
 import { build } from "esbuild";
 
@@ -79,14 +79,22 @@ const bundle = await rollup({
   input: "./src/index.ts",
   plugins: [
     typescript({
-      transformers: (program) => ({
-        before: [
-          optimizer(program, {
-            entrySourceFiles: ["./src/index.ts"],
-            inlineConstEnums: true,
-          }),
-        ],
-      }),
+      tsconfigDefaults: {
+        target: "ESNext",
+        module: "ESNext",
+        moduleResolution: "Bundler",
+        lib: ["DOM", "ESNext"],
+      },
+      transformers: [
+        (ls) => ({
+          before: [
+            optimizer(ls.getProgram(), {
+              entrySourceFiles: ["src/index.ts"],
+              inlineConstEnums: true,
+            }),
+          ],
+        }),
+      ],
     }),
   ],
 });
@@ -106,6 +114,8 @@ await build({
   keepNames: false,
 });
 ```
+
+**Note**: This plugin uses `rollup-plugin-typescript2` instead of `@rollup/plugin-typescript` for better TypeScript error reporting and more reliable compilation after transformations. The transformer factory receives a `LanguageService` object, so you must call `ls.getProgram()` to get the TypeScript program.
 
 ## Options
 

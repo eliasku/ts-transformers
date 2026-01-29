@@ -1,5 +1,5 @@
 import { optimizer } from "../src";
-import typescript from "@rollup/plugin-typescript";
+import typescript from "rollup-plugin-typescript2";
 import { rollup } from "rollup";
 import { build } from "esbuild";
 
@@ -8,7 +8,7 @@ const main = async () => {
     input: "./src/index.ts",
     plugins: [
       typescript({
-        compilerOptions: {
+        tsconfigDefaults: {
           useDefineForClassFields: false,
           allowSyntheticDefaultImports: true,
           target: "ESNext",
@@ -17,14 +17,18 @@ const main = async () => {
           moduleDetection: "force",
           lib: ["DOM", "ESNext"],
         },
-        transformers: (program) => ({
-          before: [
-            optimizer(program, {
-              entrySourceFiles: ["./src/index.ts"],
-              inlineConstEnums: true,
-            }),
-          ],
-        }),
+        clean: true,
+        transformers: [
+          // @ts-expect-error - rollup-plugin-typescript2 types not fully exported
+          (ls) => ({
+            before: [
+              optimizer(ls.getProgram(), {
+                entrySourceFiles: ["./src/index.ts"],
+                inlineConstEnums: true,
+              }),
+            ],
+          }),
+        ] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
     ],
   });

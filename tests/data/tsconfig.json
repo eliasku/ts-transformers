@@ -17,6 +17,7 @@
     "verbatimModuleSyntax": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "strict": true,
   },
   "include": ["./**/*.ts"],
 }
