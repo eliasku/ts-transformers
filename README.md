@@ -28,6 +28,7 @@ Based on type analysis, properties are categorized as:
 - **Private**: Everything else → prefixed with `$_` (mangled by minifier)
 
 **Example:**
+
 ```typescript
 // Before
 class MyClass {
@@ -55,7 +56,10 @@ Replaces const enum accesses with literal values and removes declarations.
 
 ```typescript
 // Before
-const enum Status { Active = 1, Inactive = 0 }
+const enum Status {
+  Active = 1,
+  Inactive = 0,
+}
 const status = Status.Active;
 
 // After transformer + minifier
@@ -97,7 +101,7 @@ await build({
   entryPoints: ["./dist/bundle.js"],
   outfile: "./dist/bundle.min.js",
   minify: true,
-  mangleProps: /^\$_/,  // Match your privatePrefix
+  mangleProps: /^\$_/, // Match your privatePrefix
   mangleQuoted: false,
   keepNames: false,
 });
@@ -110,15 +114,15 @@ await build({
 Entry points defining your public API surface.
 
 ```typescript
-entrySourceFiles: ["./src/index.ts"]
+entrySourceFiles: ["./src/index.ts"];
 ```
 
-### privatePrefix (optional, default: "$_")
+### privatePrefix (optional, default: "$\_")
 
 Prefix for private properties that will be mangled by esbuild.
 
 ```typescript
-privatePrefix: "$_"  // myFunction → $_myFunction
+privatePrefix: "$_"; // myFunction → $_myFunction
 ```
 
 ### publicJSDocTag (optional, default: "public")
@@ -126,13 +130,13 @@ privatePrefix: "$_"  // myFunction → $_myFunction
 JSDoc tag marking types/properties as public. Set to empty string to disable.
 
 ```typescript
-publicJSDocTag: "public"
+publicJSDocTag: "public";
 
 class MyClass {
   /** @public */
-  apiMethod() {}  // Public, no prefix
+  apiMethod() {} // Public, no prefix
 
-  internalHelper() {}  // Private, gets $_ prefix
+  internalHelper() {} // Private, gets $_ prefix
 }
 ```
 
@@ -141,12 +145,12 @@ class MyClass {
 Skip renaming decorated fields.
 
 ```typescript
-ignoreDecorated: true
+ignoreDecorated: true;
 
 @Component({ selector: "app-root" })
 class AppComponent {
-  @Input() data: any;  // Not renamed
-  private internal = 1;  // Renamed to $_internal
+  @Input() data: any; // Not renamed
+  private internal = 1; // Renamed to $_internal
 }
 ```
 
@@ -160,7 +164,7 @@ Inline const enum values and remove declarations.
 // src/index.ts (before)
 class API {
   private baseUrl = "https://api.example.com";
-  
+
   /** @public */
   async get(path: string): Promise<Response> {
     const url = `${this.baseUrl}${path}`;
@@ -190,5 +194,16 @@ class API {
 }
 
 // After esbuild minifier
-class A{a="https://api.example.com";async get(t){const n=`${this.a}${t}`;return await fetch(n)}b(t){return t}}const s=new A;export{s};
+class A {
+  a = "https://api.example.com";
+  async get(t) {
+    const n = `${this.a}${t}`;
+    return await fetch(n);
+  }
+  b(t) {
+    return t;
+  }
+}
+const s = new A();
+export { s };
 ```

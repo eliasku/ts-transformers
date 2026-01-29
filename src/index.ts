@@ -53,7 +53,7 @@ function createTransformerFactory(
 
         if (ts.isImportSpecifier(node)) {
           const removed = tryRemoveConstEnumImport(node);
-          if (removed === undefined) {
+          if (removed === undefined || node.isTypeOnly) {
             return undefined;
           }
         }

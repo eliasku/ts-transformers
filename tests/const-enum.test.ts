@@ -45,6 +45,16 @@ describe("mangler with const-enum inlining", () => {
   it.concurrent("inline imported const enum", async () => {
     const result = await compileTestInput("./data/const-enum/imports.ts");
     const code = result?.output?.[0]?.code;
+    console.warn(code);
+    expect(code).toContain("1"); // ImportedEnum.Foo
+    expect(code).not.toContain("ImportedEnum");
+    // Import should be removed
+    expect(code).not.toMatch(/import.*ImportedEnum/);
+  });
+
+  it.concurrent("inline re-exported const enum", async () => {
+    const result = await compileTestInput("./data/const-enum/re-export.ts");
+    const code = result?.output?.[0]?.code;
 
     expect(code).toContain("1"); // ImportedEnum.Foo
     expect(code).not.toContain("ImportedEnum");
