@@ -32,11 +32,6 @@ export interface OptimizerOptions {
    * Whether to inline const enum values.
    */
   inlineConstEnums?: boolean;
-
-  /**
-   * Keep empty const enum declarations, keep imports / exports
-   */
-  keepConstEnumEmptyDeclaration?: boolean;
 }
 
 export const enum VisibilityType {

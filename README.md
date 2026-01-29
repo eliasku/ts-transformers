@@ -52,7 +52,7 @@ class A{publicApi(){},a(){},b=1}
 
 ### Const Enum Inlining
 
-Replaces const enum accesses with literal values and removes declarations.
+Replaces const enum accesses with literal values and transforms declarations to remove codegen, but keep symbol to preserve default import/export flow.
 
 ```typescript
 // Before
@@ -60,17 +60,21 @@ const enum Status {
   Active = 1,
   Inactive = 0,
 }
-const status = Status.Active;
+export const status = Status.Active;
 
-// After transformer + minifier
-const status = 1;
+// After transformer
+export let Status: {};
+export const status = 1;
+
+// After minifier
+export const status=1;
 ```
 
 ## Usage
 
 ```typescript
 import { optimizer } from "@eliasku/ts-transformers";
-import typescript from "rollup-plugin-typescript2";
+import typescript from "@rollup/plugin-typescript";
 import { rollup } from "rollup";
 import { build } from "esbuild";
 
@@ -79,22 +83,19 @@ const bundle = await rollup({
   input: "./src/index.ts",
   plugins: [
     typescript({
-      tsconfigDefaults: {
+      compilerOptions: {
         target: "ESNext",
         module: "ESNext",
         moduleResolution: "Bundler",
         lib: ["DOM", "ESNext"],
       },
-      transformers: [
-        (ls) => ({
-          before: [
-            optimizer(ls.getProgram(), {
-              entrySourceFiles: ["src/index.ts"],
-              inlineConstEnums: true,
-            }),
-          ],
-        }),
-      ],
+      transformers: (program) => ({
+        before: [
+          optimizer(program, {
+            entrySourceFiles: ["src/index.ts"],
+          }),
+        ],
+      }),
     }),
   ],
 });
@@ -115,7 +116,7 @@ await build({
 });
 ```
 
-**Note**: This plugin uses `rollup-plugin-typescript2` instead of `@rollup/plugin-typescript` for better TypeScript error reporting and more reliable compilation after transformations. The transformer factory receives a `LanguageService` object, so you must call `ls.getProgram()` to get the TypeScript program.
+**Note**: This plugin uses `@rollup/plugin-typescript`. The transformer receives a TypeScript `Program` object directly.
 
 ## Options
 
@@ -166,7 +167,7 @@ class AppComponent {
 
 ### inlineConstEnums (optional, default: true)
 
-Inline const enum values and remove declarations.
+Inline const enum values and transform declarations to preserve export/import flow.
 
 ## Complete Example
 

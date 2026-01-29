@@ -1,7 +1,7 @@
 {
   "name": "@eliasku/ts-transformers",
   "description": "TypeScript transformer for code optimization",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
     "typescript-eslint": "latest",
     "@types/bun": "latest",
     "rollup": "latest",
-    "rollup-plugin-typescript2": "latest",
+    "@rollup/plugin-typescript": "latest",
     "tslib": "latest",
     "esbuild": "latest"
   },

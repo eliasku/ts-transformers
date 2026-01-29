@@ -46,25 +46,11 @@ function createTransformerFactory(
   return (context: ts.TransformationContext) => {
     function transformNode(node: ts.Node): ts.Node | undefined {
       if (fullOptions.inlineConstEnums !== false) {
-        // if (ts.isBinaryExpression(node)) {
-        //   const left = (ts.isPropertyAccessExpression(node.left) ? tryInlineConstEnum(node.left) : null) || node.left;
-        //   const right =
-        //     (ts.isPropertyAccessExpression(node.right) ? tryInlineConstEnum(node.right) : null) || node.right;
-        //   return ts.factory.updateBinaryExpression(node, left, node.operatorToken, right);
-        // }
-
         if (ts.isPropertyAccessExpression(node)) {
           const inlined = tryInlineConstEnum(node);
-          if (inlined) return inlined;
-        }
-
-        if (fullOptions.keepConstEnumEmptyDeclaration !== true) {
-          if (ts.isImportDeclaration(node)) {
-            return handleImportDeclaration(node);
-          }
-
-          if (ts.isExportDeclaration(node)) {
-            return handleExportDeclaration(node);
+          if (inlined) {
+            ts.setOriginalNode(inlined, node);
+            return inlined;
           }
         }
       }
@@ -571,7 +557,6 @@ function createTransformerFactory(
               return putToCache(nodeSymbol, VisibilityType.External);
             }
 
-            // TODO: mute enum renames
             if (ts.isEnumDeclaration(currentNode)) {
               return putToCache(nodeSymbol, VisibilityType.External);
             }
@@ -671,97 +656,14 @@ function createTransformerFactory(
       return r;
     }
 
-    function isConstEnumSpecifier(specifier: ts.ImportSpecifier | ts.ExportSpecifier): boolean {
-      const specifierType = typeChecker.getTypeAtLocation(specifier);
-      return isConstEnumType(specifierType);
-    }
-
-    function filterConstEnumSpecifiers(
-      specifiers: ts.NodeArray<ts.ImportSpecifier | ts.ExportSpecifier>,
-    ): (ts.ImportSpecifier | ts.ExportSpecifier)[] {
-      return specifiers.filter((specifier) => !isConstEnumSpecifier(specifier));
-    }
-
-    function handleImportDeclaration(node: ts.ImportDeclaration): ts.ImportDeclaration | undefined {
-      if (node.importClause) {
-        const { importClause } = node;
-
-        if (importClause.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
-          const filteredSpecifiers = filterConstEnumSpecifiers(
-            importClause.namedBindings.elements,
-          ) as ts.ImportSpecifier[];
-
-          if (filteredSpecifiers.length === 0) {
-            return undefined;
-          }
-
-          if (filteredSpecifiers.length === importClause.namedBindings.elements.length) {
-            return node;
-          }
-
-          // filteredSpecifiers.map((x) => context.factory.createImportSpecifier(x.isTypeOnly, x.propertyName, x.name));
-          const updatedNamedBindings = context.factory.updateNamedImports(
-            importClause.namedBindings,
-            filteredSpecifiers,
-          );
-
-          const newImportClause = context.factory.updateImportClause(
-            importClause,
-            importClause.phaseModifier,
-            importClause.name,
-            updatedNamedBindings,
-          );
-
-          const result = context.factory.updateImportDeclaration(
-            node,
-            node.modifiers,
-            newImportClause,
-            node.moduleSpecifier,
-            node.attributes,
-          );
-          return result;
-        }
-
-        if (importClause.name && !importClause.namedBindings) {
-          const type = typeChecker.getTypeAtLocation(importClause.name);
-          if (isConstEnumType(type)) {
-            return undefined;
-          }
-        }
-      }
-
-      return node;
-    }
-
-    function handleExportDeclaration(node: ts.ExportDeclaration): ts.ExportDeclaration | undefined {
-      if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-        const filteredSpecifiers = filterConstEnumSpecifiers(node.exportClause.elements) as ts.ExportSpecifier[];
-
-        if (filteredSpecifiers.length === 0) {
-          return undefined;
-        }
-
-        if (filteredSpecifiers.length === node.exportClause.elements.length) {
-          return node;
-        }
-
-        return context.factory.updateExportDeclaration(
-          node,
-          node.modifiers,
-          node.isTypeOnly,
-          context.factory.updateNamedExports(node.exportClause, filteredSpecifiers),
-          node.moduleSpecifier,
-          node.attributes,
-        );
-      }
-
-      return node;
-    }
-
     return (sourceFile: ts.SourceFile) => {
       function handleEnumDeclaration(node: ts.EnumDeclaration): ts.EnumDeclaration | undefined {
-        if (fullOptions.inlineConstEnums === false) return node;
-        if (!hasModifier(node, ts.SyntaxKind.ConstKeyword)) return node;
+        if (fullOptions.inlineConstEnums === false) {
+          return node;
+        }
+        if (!hasModifier(node, ts.SyntaxKind.ConstKeyword)) {
+          return node;
+        }
 
         if (sourceFile.isDeclarationFile) {
           return ts.factory.updateEnumDeclaration(
@@ -772,10 +674,20 @@ function createTransformerFactory(
           );
         }
 
-        if (fullOptions.keepConstEnumEmptyDeclaration === true) {
-          return ts.factory.updateEnumDeclaration(node, node.modifiers, node.name, []);
-        }
-        return undefined;
+        return ts.factory.createVariableStatement(
+          [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+          ts.factory.createVariableDeclarationList(
+            [
+              ts.factory.createVariableDeclaration(
+                node.name, // Reuse enum name
+                undefined,
+                ts.factory.createTypeLiteralNode([]), // Empty object type: {}
+                undefined, // No initializer (empty declaration)
+              ),
+            ],
+            ts.NodeFlags.Let, // Sets the 'const' modifier
+          ),
+        ) as unknown as ts.EnumDeclaration;
       }
 
       function wrapTransformNode(node: ts.Node): ts.Node | undefined {
@@ -791,11 +703,8 @@ function createTransformerFactory(
         return transformNode(node);
       }
 
-      const wrappedTransformNodeAndChildren = (node: ts.Node): ts.Node | undefined => {
-        const result = ts.visitEachChild(wrapTransformNode(node), wrappedTransformNodeAndChildren, context);
-        //return ts.fixupParentReferences(result);
-        return result;
-      };
+      const wrappedTransformNodeAndChildren = (node: ts.Node): ts.Node | undefined =>
+        ts.visitEachChild(wrapTransformNode(node), wrappedTransformNodeAndChildren, context);
 
       return wrappedTransformNodeAndChildren(sourceFile) as ts.SourceFile;
     };

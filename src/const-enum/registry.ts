@@ -2,7 +2,7 @@ import ts from "typescript";
 import { EnumValue, EvaluationContext } from "./evaluator";
 import { EnumEvaluator } from "./evaluator";
 import { isConstEnumSymbol } from "./utils";
-import { hasModifier } from "../typescript-helpers";
+import { hasModifier } from "../utils/symbol-utils";
 
 export interface ConstEnumInfo {
   declaration: ts.EnumDeclaration;

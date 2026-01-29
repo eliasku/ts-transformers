@@ -1,6 +1,6 @@
 import { rollup } from "rollup";
 import path from "node:path";
-import typescript from "rollup-plugin-typescript2";
+import typescript from "@rollup/plugin-typescript";
 import { optimizer, type OptimizerOptions } from "../src";
 
 export const compileTestInput = async (input: string, config?: Partial<OptimizerOptions>) => {
@@ -12,19 +12,15 @@ export const compileTestInput = async (input: string, config?: Partial<Optimizer
       plugins: [
         typescript({
           tsconfig: tsConfigPath,
-          clean: true,
-          transformers: [
-            // @ts-expect-error - rollup-plugin-typescript2 types not fully exported
-            (ls) => ({
-              before: [
-                optimizer(ls.getProgram(), {
-                  entrySourceFiles: [entryPoint],
-                  inlineConstEnums: true,
-                  ...(config || {}),
-                }),
-              ],
-            }),
-          ] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+          transformers: (program) => ({
+            before: [
+              optimizer(program, {
+                entrySourceFiles: [entryPoint],
+                inlineConstEnums: true,
+                ...(config || {}),
+              }),
+            ],
+          }),
         }),
       ],
       logLevel: "debug",
