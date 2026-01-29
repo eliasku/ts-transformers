@@ -58,6 +58,13 @@ function createTransformerFactory(
           }
         }
 
+        if (ts.isExportSpecifier(node)) {
+          const removed = tryRemoveConstEnumExport(node);
+          if (removed === undefined || node.isTypeOnly) {
+            return undefined;
+          }
+        }
+
         if (ts.isImportClause(node)) {
           const removed = tryRemoveConstEnumImportClause(node);
           if (removed === undefined) {
@@ -665,6 +672,14 @@ function createTransformerFactory(
     }
 
     function tryRemoveConstEnumImport(node: ts.ImportSpecifier): ts.ImportSpecifier | undefined {
+      const importedType = typeChecker.getTypeAtLocation(node);
+      if (isConstEnumType(importedType)) {
+        return undefined;
+      }
+      return node;
+    }
+
+    function tryRemoveConstEnumExport(node: ts.ExportSpecifier): ts.ExportSpecifier | undefined {
       const importedType = typeChecker.getTypeAtLocation(node);
       if (isConstEnumType(importedType)) {
         return undefined;
