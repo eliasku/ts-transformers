@@ -122,24 +122,6 @@ export class ExportsSymbolTree {
         } else {
           console.warn(`[computeTreeForChildren]   Could not get exports for aliased symbol`);
         }
-        if (LOGS) {
-          console.log(`[computeTreeForChildren]   Module exports: ${moduleExports.map((e) => e.name).join(", ")}`);
-        }
-        for (const exportSymbol of moduleExports) {
-          const actualExport = getActualSymbol(exportSymbol, typeChecker);
-          if (!visitedSymbols.has(actualExport)) {
-            visitedSymbols.add(actualExport);
-            targetSymbolsSet.add(actualExport);
-            if (LOGS) {
-              console.log(`[computeTreeForChildren]     Adding: ${actualExport.escapedName}`);
-            }
-
-            // Recursively process the export's declarations
-            for (const exportDeclaration of getDeclarationsForSymbol(actualExport)) {
-              this.computeTreeForChildren(targetSymbolsSet, exportDeclaration, visitedSymbols);
-            }
-          }
-        }
       }
       return;
     }

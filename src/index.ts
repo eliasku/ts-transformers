@@ -28,13 +28,13 @@ export const optimizer = (
 
   const cache = new Map<ts.Symbol, VisibilityType>();
 
-  function putToCache(nodeSymbol: ts.Symbol, val: VisibilityType): VisibilityType {
+  const putToCache = (nodeSymbol: ts.Symbol, val: VisibilityType): VisibilityType => {
     cache.set(nodeSymbol, val);
     return val;
-  }
+  };
 
   return (context: ts.TransformationContext) => {
-    function transformNode(node: ts.Node): ts.Node | undefined {
+    const transformNode = (node: ts.Node): ts.Node | undefined => {
       // const a = { node }
       if (ts.isShorthandPropertyAssignment(node)) {
         return handleShorthandPropertyAssignment(node);
@@ -115,9 +115,9 @@ export const optimizer = (
       }
 
       return node;
-    }
+    };
 
-    function handleInKeyword(node: ts.StringLiteral): ts.StringLiteral {
+    const handleInKeyword = (node: ts.StringLiteral): ts.StringLiteral => {
       const parent = node.parent as ts.BinaryExpression;
       const nodeType = typeChecker.getTypeAtLocation(node);
       if (!nodeType.isStringLiteral()) {
@@ -130,53 +130,41 @@ export const optimizer = (
       }
 
       return createNewNode(propertyName, VisibilityType.Private, context.factory.createStringLiteral);
-    }
+    };
 
     // obj.node
-    function handlePropertyAccessIdentifier(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handlePropertyAccessIdentifier = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
     // obj['fooBar']
-    function handleElementAccessExpression(node: ts.StringLiteral): ts.StringLiteral {
+    const handleElementAccessExpression = (node: ts.StringLiteral): ts.StringLiteral => {
       const visibilityType = getNodeVisibilityType(node);
       if (visibilityType === VisibilityType.External) {
         return node;
       }
 
       return createNewNodeFromProperty(node, visibilityType, context.factory.createStringLiteral);
-    }
+    };
 
     // private node
     // public node()
-    function handleClassMember(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handleClassMember = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
     // enum Enum { node }
-    function handleEnumMember(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handleEnumMember = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
     // const { node: localName } = obj;
-    function handleBindingElement(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handleBindingElement = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
     // <Comp node={...} />
-    function handleJsxAttributeName(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handleJsxAttributeName = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
     // const a = { node: 123 }
-    function handlePropertyAssignment(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handlePropertyAssignment = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
     // const a = { node }
-    function handleShorthandPropertyAssignment(
+    const handleShorthandPropertyAssignment = (
       node: ts.ShorthandPropertyAssignment,
-    ): ts.PropertyAssignment | ts.ShorthandPropertyAssignment {
+    ): ts.PropertyAssignment | ts.ShorthandPropertyAssignment => {
       const visibilityType = getNodeVisibilityType(node.name);
       if (visibilityType === VisibilityType.External) {
         return node;
@@ -185,10 +173,10 @@ export const optimizer = (
       return createNewNodeFromProperty(node.name, visibilityType, (newName: string) => {
         return context.factory.createPropertyAssignment(newName, node.name);
       });
-    }
+    };
 
     // const { node } = obj;
-    function handleShorthandObjectBindingElement(node: ts.BindingElement): ts.BindingElement {
+    const handleShorthandObjectBindingElement = (node: ts.BindingElement): ts.BindingElement => {
       if (!ts.isIdentifier(node.name)) {
         return node;
       }
@@ -201,29 +189,27 @@ export const optimizer = (
       return createNewNodeFromProperty(node.name, visibilityType, (newName: string) => {
         return context.factory.createBindingElement(node.dotDotDotToken, newName, node.name, node.initializer);
       });
-    }
+    };
 
     // constructor(public node: string) { // <--- this
     //     console.log(node); // <--- and this
     // }
-    function handleCtorParameter(node: ts.Identifier): ts.Identifier {
-      return createNewIdentifier(node);
-    }
+    const handleCtorParameter = (node: ts.Identifier): ts.Identifier => createNewIdentifier(node);
 
-    function createNewIdentifier(oldIdentifier: ts.Identifier): ts.Identifier {
+    const createNewIdentifier = (oldIdentifier: ts.Identifier): ts.Identifier => {
       const visibilityType = getNodeVisibilityType(oldIdentifier);
       if (visibilityType === VisibilityType.External) {
         return oldIdentifier;
       }
 
       return createNewNodeFromProperty(oldIdentifier, visibilityType, context.factory.createIdentifier);
-    }
+    };
 
-    function createNewNodeFromProperty<T extends ts.Node>(
+    const createNewNodeFromProperty = <T extends ts.Node>(
       oldProperty: ts.PropertyName,
       type: VisibilityType,
       createNode: (newName: string) => T,
-    ): T {
+    ): T => {
       const symbol = typeChecker.getSymbolAtLocation(oldProperty);
       if (symbol === undefined) {
         throw new Error(`Cannot get symbol for node "${oldProperty.getText()}"`);
@@ -232,39 +218,37 @@ export const optimizer = (
       const oldPropertyName = ts.unescapeLeadingUnderscores(symbol.escapedName);
 
       return createNewNode(oldPropertyName, type, createNode);
-    }
+    };
 
-    function createNewNode<T extends ts.Node>(
+    const createNewNode = <T extends ts.Node>(
       oldPropertyName: string,
       type: VisibilityType,
       createNode: (newName: string) => T,
-    ): T {
+    ): T => {
       const newPropertyName = getNewName(oldPropertyName);
       return createNode(newPropertyName);
-    }
+    };
 
-    function getNewName(originalName: string): string {
-      return `${fullOptions.privatePrefix}${originalName}`;
-    }
+    const getNewName = (originalName: string): string => `${fullOptions.privatePrefix}${originalName}`;
 
-    function getActualSymbol(symbol: ts.Symbol): ts.Symbol {
+    const getActualSymbol = (symbol: ts.Symbol): ts.Symbol => {
       if (symbol.flags & ts.SymbolFlags.Alias) {
         symbol = typeChecker.getAliasedSymbol(symbol);
       }
 
       return symbol;
-    }
+    };
 
-    function getNodeSymbol(node: ts.Expression | ts.NamedDeclaration | ts.DeclarationName): ts.Symbol | null {
+    const getNodeSymbol = (node: ts.Expression | ts.NamedDeclaration | ts.DeclarationName): ts.Symbol | null => {
       const symbol = typeChecker.getSymbolAtLocation(node);
       if (symbol === undefined) {
         return null;
       }
 
       return getActualSymbol(symbol);
-    }
+    };
 
-    function isTypePropertyExternal(type: ts.Type, typePropertyName: string): boolean {
+    const isTypePropertyExternal = (type: ts.Type, typePropertyName: string): boolean => {
       // if a type is unknown or any - they should be interpret as a public ones
       if (type.flags & ts.TypeFlags.Unknown || type.flags & ts.TypeFlags.Any) {
         return true;
@@ -343,11 +327,11 @@ export const optimizer = (
       return [propertySymbol, ...splitTransientSymbol(propertySymbol, typeChecker)].some(
         (sym: ts.Symbol) => getSymbolVisibilityType(sym) === VisibilityType.External,
       );
-    }
+    };
 
-    function getNodeVisibilityType(
+    const getNodeVisibilityType = (
       node: ts.Expression | ts.Identifier | ts.StringLiteral | ts.BindingElement,
-    ): VisibilityType {
+    ): VisibilityType => {
       if (ts.isPropertyAssignment(node.parent) || ts.isShorthandPropertyAssignment(node.parent)) {
         let expressionToGetTypeFrom: ts.Expression = node.parent.parent;
         let lastKnownExpression: ts.AsExpression | ts.ObjectLiteralExpression = node.parent.parent;
@@ -499,9 +483,9 @@ export const optimizer = (
       }
 
       return getSymbolVisibilityType(symbol);
-    }
+    };
 
-    function getSymbolVisibilityType(nodeSymbol: ts.Symbol): VisibilityType {
+    const getSymbolVisibilityType = (nodeSymbol: ts.Symbol): VisibilityType => {
       nodeSymbol = getActualSymbol(nodeSymbol);
 
       const cachedValue = cache.get(nodeSymbol);
@@ -570,9 +554,9 @@ export const optimizer = (
       }
 
       return putToCache(nodeSymbol, VisibilityType.Private);
-    }
+    };
 
-    function getShorthandObjectBindingElementSymbol(element: ts.BindingElement): ts.Symbol | null {
+    const getShorthandObjectBindingElementSymbol = (element: ts.BindingElement): ts.Symbol | null => {
       if (element.propertyName !== undefined) {
         throw new Error(
           `Cannot handle binding element with property name: ${element.getText()} in ${
@@ -595,9 +579,9 @@ export const optimizer = (
       }
 
       return type.getProperty(ts.idText(element.name)) || null;
-    }
+    };
 
-    function isDeclarationFromExternals(declaration: ts.Declaration): boolean {
+    const isDeclarationFromExternals = (declaration: ts.Declaration): boolean => {
       const sourceFile = declaration.getSourceFile();
 
       // all declarations from declaration source files are external by default
@@ -606,16 +590,15 @@ export const optimizer = (
         program.isSourceFileDefaultLibrary(sourceFile) ||
         /[\\/]node_modules[\\/]/.test(sourceFile.fileName)
       );
-    }
+    };
 
-    function isConstructorParameterReference(node: ts.Node): node is ts.Identifier {
+    const isConstructorParameterReference = (node: ts.Node): node is ts.Identifier => {
       if (!ts.isIdentifier(node)) {
         return false;
       }
 
       return isSymbolClassMember(typeChecker.getSymbolAtLocation(node));
-    }
-
+    };
     const transformNodeAndChildren = (node: ts.Node): ts.Node | undefined =>
       ts.visitEachChild(transformNode(node), transformNodeAndChildren, context);
 

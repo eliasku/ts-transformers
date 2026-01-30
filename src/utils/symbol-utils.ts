@@ -1,14 +1,14 @@
 import ts from "typescript";
 
-export function getActualSymbol(symbol: ts.Symbol, typeChecker: ts.TypeChecker): ts.Symbol {
+export const getActualSymbol = (symbol: ts.Symbol, typeChecker: ts.TypeChecker): ts.Symbol => {
   if (symbol.flags & ts.SymbolFlags.Alias) {
     symbol = typeChecker.getAliasedSymbol(symbol);
   }
 
   return symbol;
-}
+};
 
-export function splitTransientSymbol(symbol: ts.Symbol, typeChecker: ts.TypeChecker): ts.Symbol[] {
+export const splitTransientSymbol = (symbol: ts.Symbol, typeChecker: ts.TypeChecker): ts.Symbol[] => {
   // actually I think we even don't need to operate/use "Transient" symbols anywhere
   // it's kind of aliased symbol, but just merged
   // but it's hard to refractor everything to use array of symbols instead of just symbol
@@ -36,9 +36,9 @@ export function splitTransientSymbol(symbol: ts.Symbol, typeChecker: ts.TypeChec
   }
 
   return result;
-}
+};
 
-export function getDeclarationsForSymbol(symbol: ts.Symbol): ts.Declaration[] {
+export const getDeclarationsForSymbol = (symbol: ts.Symbol): ts.Declaration[] => {
   const result: ts.Declaration[] = [];
 
   if (symbol.declarations !== undefined) {
@@ -54,9 +54,9 @@ export function getDeclarationsForSymbol(symbol: ts.Symbol): ts.Declaration[] {
   }
 
   return result;
-}
+};
 
-export function getExportsForSourceFile(typeChecker: ts.TypeChecker, sourceFileSymbol: ts.Symbol): ts.Symbol[] {
+export const getExportsForSourceFile = (typeChecker: ts.TypeChecker, sourceFileSymbol: ts.Symbol): ts.Symbol[] => {
   if (sourceFileSymbol.exports !== undefined) {
     const commonJsExport = sourceFileSymbol.exports.get(ts.InternalSymbolName.ExportEquals);
     if (commonJsExport !== undefined) {
@@ -78,7 +78,7 @@ export function getExportsForSourceFile(typeChecker: ts.TypeChecker, sourceFileS
   }
 
   return result.map((symbol: ts.Symbol) => getActualSymbol(symbol, typeChecker));
-}
+};
 
 const namedDeclarationKinds = [
   ts.SyntaxKind.InterfaceDeclaration,
@@ -92,9 +92,8 @@ const namedDeclarationKinds = [
   ts.SyntaxKind.Parameter,
 ];
 
-export function isNodeNamedDeclaration(node: ts.Node): node is ts.NamedDeclaration {
-  return namedDeclarationKinds.indexOf(node.kind) !== -1;
-}
+export const isNodeNamedDeclaration = (node: ts.Node): node is ts.NamedDeclaration =>
+  namedDeclarationKinds.indexOf(node.kind) !== -1;
 
 export type ClassMember =
   | ts.MethodDeclaration
@@ -102,15 +101,12 @@ export type ClassMember =
   | ts.GetAccessorDeclaration
   | ts.SetAccessorDeclaration;
 
-export function isClassMember(node: ts.Node): node is ClassMember {
-  return (
-    ts.isMethodDeclaration(node) || ts.isPropertyDeclaration(node) || ts.isGetAccessor(node) || ts.isSetAccessor(node)
-  );
-}
+export const isClassMember = (node: ts.Node): node is ClassMember =>
+  ts.isMethodDeclaration(node) || ts.isPropertyDeclaration(node) || ts.isGetAccessor(node) || ts.isSetAccessor(node);
 
-export function getClassOfMemberSymbol(
+export const getClassOfMemberSymbol = (
   nodeSymbol: ts.Symbol,
-): ts.ClassLikeDeclaration | ts.ObjectLiteralExpression | ts.TypeLiteralNode | ts.InterfaceDeclaration | null {
+): ts.ClassLikeDeclaration | ts.ObjectLiteralExpression | ts.TypeLiteralNode | ts.InterfaceDeclaration | null => {
   const classMembers = getClassMemberDeclarations(nodeSymbol);
   if (classMembers.length !== 0) {
     // we need any member to get class' declaration
@@ -124,13 +120,12 @@ export function getClassOfMemberSymbol(
   }
 
   return null;
-}
+};
 
-export function hasPrivateKeyword(node: ClassMember | ts.ParameterDeclaration): boolean {
-  return hasModifier(node, ts.SyntaxKind.PrivateKeyword);
-}
+export const hasPrivateKeyword = (node: ClassMember | ts.ParameterDeclaration): boolean =>
+  hasModifier(node, ts.SyntaxKind.PrivateKeyword);
 
-function getModifiers(node: ts.Node): readonly ts.Modifier[] {
+const getModifiers = (node: ts.Node): readonly ts.Modifier[] => {
   if (isBreakingTypeScriptApi(ts)) {
     if (!ts.canHaveModifiers(node)) {
       return [];
@@ -142,13 +137,12 @@ function getModifiers(node: ts.Node): readonly ts.Modifier[] {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   return node.modifiers || [];
-}
+};
 
-export function hasModifier(node: ts.Node, modifier: ts.SyntaxKind): boolean {
-  return getModifiers(node).some((mod) => mod.kind === modifier);
-}
+export const hasModifier = (node: ts.Node, modifier: ts.SyntaxKind): boolean =>
+  getModifiers(node).some((mod) => mod.kind === modifier);
 
-function getDecorators(node: ts.Node): readonly unknown[] {
+const getDecorators = (node: ts.Node): readonly unknown[] => {
   if (isBreakingTypeScriptApi(ts)) {
     if (!ts.canHaveDecorators(node)) {
       return [];
@@ -160,24 +154,19 @@ function getDecorators(node: ts.Node): readonly unknown[] {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   return node.decorators || [];
-}
+};
 
-export function hasDecorators(node: ts.Node): boolean {
-  return getDecorators(node).length !== 0;
-}
+export const hasDecorators = (node: ts.Node): boolean => getDecorators(node).length !== 0;
 
-export function isConstructorParameter(node: ts.Node): node is ts.ParameterDeclaration {
-  return (
-    ts.isParameter(node) &&
-    ts.isConstructorDeclaration(node.parent as ts.Node) &&
-    (hasModifier(node, ts.SyntaxKind.PublicKeyword) ||
-      hasModifier(node, ts.SyntaxKind.ProtectedKeyword) ||
-      hasModifier(node, ts.SyntaxKind.PrivateKeyword) ||
-      hasModifier(node, ts.SyntaxKind.ReadonlyKeyword))
-  );
-}
+export const isConstructorParameter = (node: ts.Node): node is ts.ParameterDeclaration =>
+  ts.isParameter(node) &&
+  ts.isConstructorDeclaration(node.parent as ts.Node) &&
+  (hasModifier(node, ts.SyntaxKind.PublicKeyword) ||
+    hasModifier(node, ts.SyntaxKind.ProtectedKeyword) ||
+    hasModifier(node, ts.SyntaxKind.PrivateKeyword) ||
+    hasModifier(node, ts.SyntaxKind.ReadonlyKeyword));
 
-function getClassMemberDeclarations(symbol: ts.Symbol | undefined): (ClassMember | ts.ParameterDeclaration)[] {
+const getClassMemberDeclarations = (symbol: ts.Symbol | undefined): (ClassMember | ts.ParameterDeclaration)[] => {
   if (symbol === undefined) {
     return [];
   }
@@ -190,15 +179,13 @@ function getClassMemberDeclarations(symbol: ts.Symbol | undefined): (ClassMember
   return declarations.filter((x: ts.Declaration): x is ClassMember | ts.ParameterDeclaration => {
     return isClassMember(x) || isConstructorParameter(x);
   });
-}
+};
 
-export function isSymbolClassMember(symbol: ts.Symbol | undefined): boolean {
-  return getClassMemberDeclarations(symbol).length !== 0;
-}
+export const isSymbolClassMember = (symbol: ts.Symbol | undefined): boolean =>
+  getClassMemberDeclarations(symbol).length !== 0;
 
-export function isPrivateClassMember(symbol: ts.Symbol | undefined): boolean {
-  return getClassMemberDeclarations(symbol).some(hasPrivateKeyword);
-}
+export const isPrivateClassMember = (symbol: ts.Symbol | undefined): boolean =>
+  getClassMemberDeclarations(symbol).some(hasPrivateKeyword);
 
 // decorators and modifiers-related api added in ts 4.8
 interface BreakingTypeScriptApi {
@@ -208,6 +195,5 @@ interface BreakingTypeScriptApi {
   getModifiers(node: ts.Node): readonly ts.Modifier[] | undefined;
 }
 
-function isBreakingTypeScriptApi(compiler: object): compiler is BreakingTypeScriptApi {
-  return "canHaveDecorators" in compiler;
-}
+const isBreakingTypeScriptApi = (compiler: object): compiler is BreakingTypeScriptApi =>
+  "canHaveDecorators" in compiler;
