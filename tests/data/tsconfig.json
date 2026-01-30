@@ -18,7 +18,7 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strict": true,
+    "strict": true
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts"]
 }

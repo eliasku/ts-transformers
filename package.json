@@ -40,7 +40,6 @@
     "plugin",
     "transformer",
     "minify",
-    "const-enum",
     "treeshake",
     "mangle"
   ],

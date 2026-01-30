@@ -52,7 +52,7 @@ class A{publicApi(){},a(){},b=1}
 
 ### Const Enum Inlining
 
-TypeScript currently inlines const enums, if you use traditional compiler for production build. Check if you have option `isolatedModules: false`  disabled in `tsconfig.json`.
+TypeScript currently inlines const enums, if you use traditional compiler for production build. Check if you have option `isolatedModules: false` disabled in `tsconfig.json`.
 
 ## Usage
 
