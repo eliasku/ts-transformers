@@ -1,6 +1,4 @@
 import ts from "typescript";
-export type { OptimizerOptions } from "./types";
-
 import { ExportsSymbolTree } from "./exports/tracker";
 import {
   getDeclarationsForSymbol,
@@ -16,25 +14,17 @@ import {
 } from "./utils/symbol-utils";
 import { getNodeJSDocComment } from "./utils/ast-utils";
 import { OptimizerOptions, defaultOptions, VisibilityType } from "./types";
-import { ConstEnumRegistry } from "./const-enum/registry";
-import { EnumEvaluator } from "./const-enum/evaluator";
-import { isConstEnumType } from "./const-enum/utils";
 import { LOGS } from "./config";
+
+export type { OptimizerOptions } from "./types";
 
 export const optimizer = (
   program: ts.Program,
-  config?: Partial<OptimizerOptions>,
-): ts.TransformerFactory<ts.SourceFile> => createTransformerFactory(program, config);
-
-function createTransformerFactory(
-  program: ts.Program,
   options?: Partial<OptimizerOptions>,
-): ts.TransformerFactory<ts.SourceFile> {
+): ts.TransformerFactory<ts.SourceFile> => {
   const fullOptions: OptimizerOptions = { ...defaultOptions, ...options };
   const typeChecker = program.getTypeChecker();
   const exportsSymbolTree = new ExportsSymbolTree(program, fullOptions.entrySourceFiles);
-  const constEnumRegistry = new ConstEnumRegistry(program);
-  const enumEvaluator = new EnumEvaluator();
 
   const cache = new Map<ts.Symbol, VisibilityType>();
 
@@ -45,16 +35,6 @@ function createTransformerFactory(
 
   return (context: ts.TransformationContext) => {
     function transformNode(node: ts.Node): ts.Node | undefined {
-      if (fullOptions.inlineConstEnums !== false) {
-        if (ts.isPropertyAccessExpression(node)) {
-          const inlined = tryInlineConstEnum(node);
-          if (inlined) {
-            ts.setOriginalNode(inlined, node);
-            return inlined;
-          }
-        }
-      }
-
       // const a = { node }
       if (ts.isShorthandPropertyAssignment(node)) {
         return handleShorthandPropertyAssignment(node);
@@ -636,77 +616,9 @@ function createTransformerFactory(
       return isSymbolClassMember(typeChecker.getSymbolAtLocation(node));
     }
 
-    function tryInlineConstEnum(node: ts.PropertyAccessExpression): ts.Expression | null {
-      const expressionType = typeChecker.getTypeAtLocation(node.expression);
-      if (!isConstEnumType(expressionType)) return null;
+    const transformNodeAndChildren = (node: ts.Node): ts.Node | undefined =>
+      ts.visitEachChild(transformNode(node), transformNodeAndChildren, context);
 
-      const enumSymbol = expressionType.symbol || expressionType.aliasSymbol;
-      if (!enumSymbol) return null;
-
-      const enumInfo = constEnumRegistry.getEnumInfo(enumSymbol);
-      if (!enumInfo) return null;
-
-      const memberValue = enumInfo.members.get(node.name.text)?.value;
-      if (memberValue === undefined || memberValue === null) return null;
-      const newNode = enumEvaluator.createLiteral(memberValue);
-
-      const r = ts.setOriginalNode(newNode, node);
-      ts.setSourceMapRange(newNode, ts.getSourceMapRange(node));
-      (newNode as any).symbol = (node as any).symbol; // eslint-disable-line @typescript-eslint/no-explicit-any
-      return r;
-    }
-
-    return (sourceFile: ts.SourceFile) => {
-      function handleEnumDeclaration(node: ts.EnumDeclaration): ts.EnumDeclaration | undefined {
-        if (fullOptions.inlineConstEnums === false) {
-          return node;
-        }
-        if (!hasModifier(node, ts.SyntaxKind.ConstKeyword)) {
-          return node;
-        }
-
-        if (sourceFile.isDeclarationFile) {
-          return ts.factory.updateEnumDeclaration(
-            node,
-            node.modifiers?.filter((m) => m.kind !== ts.SyntaxKind.ConstKeyword),
-            node.name,
-            node.members,
-          );
-        }
-
-        return ts.factory.createVariableStatement(
-          [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          ts.factory.createVariableDeclarationList(
-            [
-              ts.factory.createVariableDeclaration(
-                node.name, // Reuse enum name
-                undefined,
-                ts.factory.createTypeLiteralNode([]), // Empty object type: {}
-                undefined, // No initializer (empty declaration)
-              ),
-            ],
-            ts.NodeFlags.Let, // Sets the 'const' modifier
-          ),
-        ) as unknown as ts.EnumDeclaration;
-      }
-
-      function wrapTransformNode(node: ts.Node): ts.Node | undefined {
-        if (ts.isEnumDeclaration(node)) {
-          const result = handleEnumDeclaration(node);
-          if (result !== node) {
-            if (result) {
-              return transformNode(result);
-            }
-            return result;
-          }
-        }
-        return transformNode(node);
-      }
-
-      const wrappedTransformNodeAndChildren = (node: ts.Node): ts.Node | undefined =>
-        ts.visitEachChild(wrapTransformNode(node), wrappedTransformNodeAndChildren, context);
-
-      return wrappedTransformNodeAndChildren(sourceFile) as ts.SourceFile;
-    };
+    return (sourceFile: ts.SourceFile) => transformNodeAndChildren(sourceFile) as ts.SourceFile;
   };
-}
+};

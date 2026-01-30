@@ -27,11 +27,6 @@ export interface OptimizerOptions {
    * A field is treated as "decorated" if itself or any its parent (on type level) has a decorator.
    */
   ignoreDecorated: boolean;
-
-  /**
-   * Whether to inline const enum values.
-   */
-  inlineConstEnums?: boolean;
 }
 
 export const enum VisibilityType {
@@ -44,5 +39,4 @@ export const defaultOptions: OptimizerOptions = {
   privatePrefix: "$_",
   publicJSDocTag: "public",
   ignoreDecorated: false,
-  inlineConstEnums: true,
 };

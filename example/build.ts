@@ -9,7 +9,11 @@ const main = async () => {
     plugins: [
       typescript({
         compilerOptions: {
+          isolatedModules: false,
+          verbatimModuleSyntax: false,
+          preserveConstEnums: false,
           useDefineForClassFields: false,
+          forceConsistentCasingInFileNames: true,
           allowSyntheticDefaultImports: true,
           target: "ESNext",
           module: "ESNext",

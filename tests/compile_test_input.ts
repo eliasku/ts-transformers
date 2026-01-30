@@ -16,7 +16,6 @@ export const compileTestInput = async (input: string, config?: Partial<Optimizer
             before: [
               optimizer(program, {
                 entrySourceFiles: [entryPoint],
-                inlineConstEnums: true,
                 ...(config || {}),
               }),
             ],

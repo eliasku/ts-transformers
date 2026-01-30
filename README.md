@@ -3,7 +3,7 @@
 
 # @eliasku/ts-transformers
 
-TypeScript transformer for aggressive code minification through type-aware property renaming and const enum inlining.
+TypeScript transformer for aggressive code minification through type-aware property renaming.
 
 ## Important Requirement
 
@@ -24,7 +24,7 @@ Two-phase optimization pipeline:
 
 Based on type analysis, properties are categorized as:
 
-- **Public (External)**: Exported from entry points → **no prefix** (preserved)
+- **Public**: Exported from entry points → **no prefix** (preserved)
 - **Private**: Everything else → prefixed with `$_` (mangled by minifier)
 
 **Example:**
@@ -52,23 +52,7 @@ class A{publicApi(){},a(){},b=1}
 
 ### Const Enum Inlining
 
-Replaces const enum accesses with literal values and transforms declarations to remove codegen, but keep symbol to preserve default import/export flow.
-
-```typescript
-// Before
-const enum Status {
-  Active = 1,
-  Inactive = 0,
-}
-export const status = Status.Active;
-
-// After transformer
-export let Status: {};
-export const status = 1;
-
-// After minifier
-export const status=1;
-```
+TypeScript currently inlines const enums, if you use traditional compiler for production build. Check if you have option `isolatedModules: false`  disabled in `tsconfig.json`.
 
 ## Usage
 
@@ -164,10 +148,6 @@ class AppComponent {
   private internal = 1; // Renamed to $_internal
 }
 ```
-
-### inlineConstEnums (optional, default: true)
-
-Inline const enum values and transform declarations to preserve export/import flow.
 
 ## Complete Example
 
