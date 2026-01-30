@@ -14,12 +14,12 @@ export class ExportsSymbolTree {
   private readonly program: ts.Program;
   private readonly exportsTree = new Map<ts.Symbol, Set<ts.Symbol>>();
 
-  public constructor(program: ts.Program, entrySourceFiles: readonly string[]) {
+  constructor(program: ts.Program, entrySourceFiles: readonly string[]) {
     this.program = program;
     this.computeTreeForExports(entrySourceFiles);
   }
 
-  public isSymbolAccessibleFromExports(symbol: ts.Symbol): boolean {
+  isSymbolAccessibleFromExports(symbol: ts.Symbol): boolean {
     symbol = this.getActualSymbol(symbol);
     for (const [, set] of this.exportsTree) {
       if (set.has(symbol)) {

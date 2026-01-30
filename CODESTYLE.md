@@ -1,5 +1,34 @@
 # TypeScript Coding Style Guide
 
+## Class Member Access Modifiers
+
+- **Do NOT use the `public` modifier** on class members
+- All class members are `public` by default in TypeScript
+- Only use `private`, `protected`, or `readonly` modifiers when explicitly needed
+
+```typescript
+// Good
+class User {
+  name: string; // public by default
+  private id: string;
+  protected email: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+
+// Avoid
+class User {
+  public name: string; // redundant public modifier
+  public id: string;
+
+  public constructor(name: string) {
+    this.name = name;
+  }
+}
+```
+
 ## Function vs Arrow Function Rules
 
 ### Arrow Functions `() => {...}`
