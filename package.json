@@ -34,7 +34,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./ts": "./scr/index.ts"
+    "./ts": "./src/index.ts"
   },
   "repository": {
     "type": "git",
