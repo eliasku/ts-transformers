@@ -1,10 +1,10 @@
 {
   "name": "@eliasku/ts-transformers",
   "description": "TypeScript transformer for code optimization",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "MIT",
-  "type": "module",
   "scripts": {
+    "build": "tsup ./src/index.ts --target esnext --platform neutral --format esm --dts --sourcemap --minify terser --treeshake smallest --splitting false",
     "test": "bun test",
     "format": "prettier --write **/*.{ts,json,md,yml}",
     "check": "tsc -p .",
@@ -22,12 +22,19 @@
     "rollup": "latest",
     "@rollup/plugin-typescript": "latest",
     "tslib": "latest",
-    "esbuild": "latest"
+    "esbuild": "latest",
+    "tsup": "latest",
+    "terser": "latest"
   },
-  "module": "./src/index.ts",
-  "types": "./src/index.ts",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./ts": "./scr/index.ts"
   },
   "repository": {
     "type": "git",
@@ -47,6 +54,7 @@
     "access": "public"
   },
   "files": [
+    "dist",
     "src"
   ]
 }
